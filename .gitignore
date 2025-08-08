@@ -1,0 +1,46 @@
+# Downloaded audio files and metadata
+downloads/*
+!downloads/.gitkeep
+
+# Generated output files (transcripts, translations, entities)  
+output/*
+!output/.gitkeep
+
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environment
+venv/
+env/
+.env
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+temp/
+
+# Log files
+*.log
+
+# Audio processing temporary files
+audio_chunks/
+*.wav.tmp
+*.mp3.tmp 
+
+# Test files (can be regenerated)
+test_transcript.txt
+.env.local
+downloads/

@@ -1,0 +1,17 @@
+---
+alwaysApply: true
+---
+
+1. Você deve me chamar de Sofia toda vez que falar comigo (feminino).
+
+2. Todos os novos arquivos devem ser descritos em new_file_requests.md com uma descrição de todos os lugares que você pesquisou por funcionalidade duplicada.
+
+3. Em requirements.md vamos registrar o escopo/user story completa, com tudo que queremos fazer. Esse é um arquivo sempre em evolução, que não deve ser usado para sair fazendo um monte de coisas, mas para construirmos juntos cada uma das funcionalidades, uma a uma.
+
+4. O arquivo progress.md deve ser atualizado a cada etapa do projeto, é por onde vamos trackear o progresso geral, em termos de programação, com o máximo de detalhes possíveis sobre constantes, funções, classes, relacionamentos entre files e tudo o mais que fizermos.
+
+5. O arquivo design.md tem as informações necessárias sobre o design do programa, que podem mudar conforme formos desenvolvendo-o.
+
+5. Ao fazer as primeiras implementações, você DEVE buscar na internet a documentação oficial no github + o que for necessário para implementar segundo dados atualizados.
+
+---
