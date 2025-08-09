@@ -1,0 +1,77 @@
+{
+  "channel_id": "@ExampleChannel",
+  "channel_title": "Example Channel",
+  "channel_url": "https://www.youtube.com/@ExampleChannel",
+  "created_at": "2024-01-20T10:00:00",
+  "updated_at": "2024-01-20T12:45:30",
+  "videos": [
+    {
+      "id": "video1",
+      "url": "https://www.youtube.com/watch?v=video1",
+      "title": "First Video"
+    },
+    {
+      "id": "video2",
+      "url": "https://www.youtube.com/watch?v=video2",
+      "title": "Second Video"
+    },
+    {
+      "id": "video3",
+      "url": "https://www.youtube.com/watch?v=video3",
+      "title": "Third Video"
+    }
+  ],
+  "status": {
+    "video1": {
+      "downloaded": true,
+      "transcribed": true,
+      "audio_id": "audio_111",
+      "transcript_file": "output/channels/@ExampleChannel/audio_111_transcript.txt",
+      "translations": {
+        "pt-BR": {
+          "completed": true,
+          "file": "output/channels/@ExampleChannel/audio_111_translated_pt-BR.txt",
+          "reprocessed_file": "output/channels/@ExampleChannel/audio_111_translated_pt-BR_reprocessed.txt",
+          "word_count_original": 1234,
+          "word_count_translated": 1456,
+          "processing_time": 23.5
+        },
+        "es-ES": {
+          "completed": true,
+          "file": "output/channels/@ExampleChannel/audio_111_translated_es-ES.txt",
+          "reprocessed_file": "output/channels/@ExampleChannel/audio_111_translated_es-ES_reprocessed.txt",
+          "word_count_original": 1234,
+          "word_count_translated": 1389,
+          "processing_time": 21.2
+        }
+      }
+    },
+    "video2": {
+      "downloaded": true,
+      "transcribed": true,
+      "audio_id": "audio_222",
+      "transcript_file": "output/channels/@ExampleChannel/audio_222_transcript.txt",
+      "translations": {
+        "pt-BR": {
+          "completed": true,
+          "file": "output/channels/@ExampleChannel/audio_222_translated_pt-BR.txt",
+          "reprocessed_file": "output/channels/@ExampleChannel/audio_222_translated_pt-BR_reprocessed.txt",
+          "word_count_original": 2345,
+          "word_count_translated": 2567,
+          "processing_time": 34.2
+        },
+        "es-ES": {
+          "completed": false,
+          "error": "Translation failed: API timeout"
+        }
+      }
+    },
+    "video3": {
+      "downloaded": true,
+      "transcribed": false,
+      "audio_id": "audio_333",
+      "error": "Transcription failed: File too large"
+    }
+  },
+  "last_index": 2
+}

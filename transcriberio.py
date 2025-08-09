@@ -24,6 +24,7 @@ from entity_detector import create_entity_detector
 from entity_reviewer import create_entity_reviewer
 from translator_normalizer import create_translator_normalizer
 from api_client import DEFAULT_TRANSCRIPTION_MODEL, DEFAULT_TEXT_MODEL, VALID_TRANSCRIPTION_MODELS
+from channel_manager import ChannelManager, is_channel_url
 
 # Load environment variables from .env.local automatically
 load_dotenv('.env.local')
@@ -258,6 +259,14 @@ def run_full_pipeline(url: str, verbose: bool = False) -> bool:
         True if successful, False otherwise
     """
     try:
+        # Detect channel URL and delegate to channel flow
+        if is_channel_url(url):
+            click.echo("📺 Detected channel URL. Starting channel processing flow...")
+            manager = ChannelManager(base_dir="./downloads")
+            # For this first version, process sequentially without translation/entities
+            manager.process(url=url, max_videos=None, verbose=verbose)
+            click.echo("✅ Channel flow completed (resumable state saved under downloads/channels)")
+            return True
         click.echo("🚀 Starting complete transcription pipeline")
         click.echo("=" * 60)
         
@@ -733,9 +742,6 @@ def download(
             click.style(f"❌ Unexpected error: {e}", fg="red"), 
             err=True
         )
-        if verbose:
-            import traceback
-            click.echo(traceback.format_exc(), err=True)
         sys.exit(1)
 
 
@@ -1798,6 +1804,37 @@ def translate(
 
 
 if __name__ == "__main__":
+    # Handle new channel flags format
+    if '-transcribe' in sys.argv or '-translate' in sys.argv:
+        # Find the URL argument
+        url = None
+        translate_arg = None
+        for i, arg in enumerate(sys.argv):
+            if arg.startswith('http'):
+                url = arg
+            elif arg == '-translate' and i + 1 < len(sys.argv):
+                translate_arg = sys.argv[i + 1]
+        
+        if url and is_channel_url(url):
+            # Parse translation languages
+            languages = []
+            if translate_arg:
+                languages = [lang.strip() for lang in translate_arg.split(',')]
+            
+            click.echo(f"📺 Detected channel URL with flags")
+            if '-transcribe' in sys.argv:
+                click.echo(f"✅ Transcription: Enabled")
+            if languages:
+                click.echo(f"🌍 Translation languages: {', '.join(languages)}")
+            
+            manager = ChannelManager(base_dir="./output")
+            manager.process(
+                url=url, 
+                verbose=False,
+                translate_languages=languages
+            )
+            sys.exit(0)
+    
     # Check if called with just a URL
     if len(sys.argv) == 2 and (sys.argv[1].startswith('http') or 'youtube.com' in sys.argv[1] or 'youtu.be' in sys.argv[1]):
         # Run full pipeline directly

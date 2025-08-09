@@ -1,3 +1,42 @@
+## channel_manager.py
+
+- Descrição: Novo módulo para detectar URLs de canal do YouTube, listar vídeos via yt-dlp (`extract_flat`), manter estado resumível em `downloads/channels/<channel_key>/state.json` (links, progresso de download/transcrição) e orquestrar o processamento 1 a 1 reaproveitando `YouTubeDownloader` e `TranscriptionService`.
+- Onde pesquisei por funcionalidade duplicada:
+  - `downloader.py`: somente vídeos individuais. Não havia fluxo de canais.
+  - `transcriberio.py` e `cli.py`: fluxo completo e comandos CLI para vídeo único; sem detecção/gerenciamento de canais.
+  - `audio_metadata.py`: metadados de áudios, mas não estado de canais.
+  - `entity_detector.py`, `entity_reviewer.py`, `translator_normalizer.py`: funcionalidades pós-transcrição, sem overlap de lista/estado de canais.
+  - Web: consulta rápida sobre yt-dlp `extract_flat` para listar vídeos de canal.
+
+Atualização (2025-08-09):
+- Estado e transcrições movidos para `output/channels/<channel_key>/`.
+- Extração ajustada para usar a aba de vídeos do canal (`/videos`) com `extract_flat: "in_playlist"` evitando tabs (Videos/Live/Shorts).
+- `ChannelManager.process()` agora aceita `translate_languages` e salva traduções (e reprocessadas) por vídeo, rastreadas no `state.json` em `status[video_id]["translations"][lang]`.
+
+## debug_channel.py
+
+- Descrição: Script de diagnóstico pontual para inspecionar como o yt-dlp retorna entradas de canais/tabs e validar o uso de `/videos` + `extract_flat`. Não faz parte do produto e serve apenas para depuração local.
+- Onde pesquisei por funcionalidade duplicada:
+  - Não há utilitários de depuração equivalentes no repositório; evitamos integrar à base principal.
+
+## test_channel_translation.sh
+
+- Descrição: Script utilitário de teste para demonstrar os novos flags de canal (`-transcribe`, `-translate`) e a estrutura de saída esperada.
+- Onde pesquisei por funcionalidade duplicada:
+  - Não existem scripts de exemplo automatizados; complementa a documentação sem sobrepor funcionalidades existentes.
+
+## test_single_video.sh
+
+- Descrição: Script utilitário para rodar um teste curto (monitorando criação do primeiro arquivo traduzido e parando em seguida). Útil para smoke tests locais.
+- Onde pesquisei por funcionalidade duplicada:
+  - Não há scripts de smoke test; é acessório e opcional.
+
+## test_state_example.json
+
+- Descrição: Arquivo de exemplo de `state.json` para validar a estrutura de resumibilidade com traduções por linguagem.
+- Onde pesquisei por funcionalidade duplicada:
+  - Não há fixtures de estado no projeto; este arquivo é apenas demonstrativo.
+
 # New File Requests
 
 ## Latest Addition: Google Gemini API Support (2025-01-22)

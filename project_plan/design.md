@@ -1,3 +1,13 @@
+- Arquitetura para fluxo de canais:
+  - Detecção: `is_channel_url(url)` identifica URLs de canal.
+  - Extração: yt-dlp com `extract_flat` obtém `entries` (id, title, url) sem download.
+  - Estado: `ChannelState` serializado em `output/channels/<channel_key>/state.json`.
+  - Orquestração: `ChannelManager.process(url, translate_languages)` percorre `videos`, baixa com `YouTubeDownloader`, transcreve com `TranscriptionService`, traduz com `TranslatorNormalizer` para múltiplas linguagens.
+  - Todas as saídas (transcrições e traduções) são salvas em `output/channels/<channel_key>/` com cabeçalho padrão.
+  - Estado rastreia traduções por linguagem: `status[video_id]["translations"][language]` com arquivo, reprocessado, contadores de palavras e tempo.
+  - Integração CLI: flags `-transcribe -translate pt-BR,es-ES` para processar canais com tradução automática.
+  - Processamento completo: cada vídeo é totalmente processado (transcrição + todas traduções) antes de passar ao próximo.
+
 # Design Document
 
 ## Overview

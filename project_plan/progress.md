@@ -1,3 +1,24 @@
+- Implementado fluxo de canais:
+  - Criado `channel_manager.py` com classes `ChannelManager`, `ChannelState`, `ChannelVideo` e helpers (`is_channel_url`, extração via yt-dlp com `extract_flat`).
+  - Estado persistido em `output/channels/<channel_key>/state.json`, contendo lista de vídeos e `status` por vídeo.
+  - Integração no `transcriberio.py::run_full_pipeline` para detectar canal e delegar ao `ChannelManager.process()`.
+  - Integração no `cli.py`:
+    - `download`: se URL for de canal, ativa fluxo de canais diretamente.
+    - `validate`: se URL for de canal, apenas lista e informa caminho do `state.json`.
+  - Reuso de `YouTubeDownloader` para baixar e `TranscriptionService` para transcrever; atualização de estado após cada etapa.
+  - As transcrições de canal agora são salvas diretamente em `output/channels/<channel_key>/<audio_id>_transcript.txt` com o mesmo cabeçalho rico do fluxo padrão.
+  - Lints verificados e corrigidos (remoção de uso de `verbose` fora de escopo em handlers de exceção).
+
+**Atualização: Suporte a Tradução em Canais**
+  - Modificado `ChannelManager.process()` para aceitar parâmetro `translate_languages`
+  - Adicionada lógica para verificar se traduções são necessárias para cada vídeo
+  - Integrado `TranslatorNormalizer` para traduzir transcrições para múltiplas linguagens
+  - Traduções salvas como `<audio_id>_translated_<language>.txt` na pasta do canal
+  - Traduções reprocessadas salvas como `<audio_id>_translated_<language>_reprocessed.txt`
+  - State JSON rastreia status de tradução para cada linguagem por vídeo
+  - Adicionado suporte CLI para flags: `-transcribe -translate pt-BR,es-ES`
+  - Tradução processa completamente cada vídeo (todas as linguagens) antes de passar ao próximo
+
 # Project Progress
 
 ## Overview

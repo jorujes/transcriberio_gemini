@@ -1,3 +1,11 @@
+- Nova user story: Como usuária, ao fornecer um link de canal do YouTube, quero que o sistema liste todos os vídeos do canal e processe (download + transcrição) 1 a 1, mantendo um estado persistente para retomar do ponto onde parei sem duplicar trabalho.
+  - Detecção automática de URL de canal (ex.: `youtube.com/@handle`, `youtube.com/channel/ID`, `youtube.com/c/NAME`, `youtube.com/user/NAME`).
+  - Criar pasta `downloads/channels/<channel_key>/` e arquivo `state.json` com:
+    - `channel_id`, `channel_title`, `channel_url`, `videos` (lista com `id`, `url`, `title`), `status` por vídeo (`downloaded`, `transcribed`, `audio_id`, `error`), `last_index`.
+  - Processar sequencialmente; ao reiniciar, pular vídeos já `transcribed == True`.
+  - O estado deve ser atualizado após cada etapa (download/transcrição), permitindo retomada.
+  - Primeira entrega: apenas download + transcrição. Tradução/entidades podem vir depois por vídeo.
+
 # Requirements Document
 
 ## Introduction
@@ -243,3 +251,17 @@ Esta implementação elimina completamente problemas de memória e CPU, permitin
 - **User Experience**: Feedback em tempo real com links clicáveis para resultados
 
 **Sistema otimizado para performance máxima e experiência de usuário superior!** ⚡✨
+
+### R22. Processamento de Canais com Tradução
+- **Comando**: `python3 transcriberio.py -transcribe -translate pt-BR,es-ES "https://www.youtube.com/@channel"`
+- **Funcionalidades**:
+  - Processar vídeos de canal com transcrição + tradução automática
+  - Suportar múltiplas linguagens de destino (separadas por vírgula)
+  - Processar completamente cada vídeo (todas traduções) antes do próximo
+  - Salvar traduções como `<audio_id>_translated_<language>.txt`
+  - Rastrear status de tradução no state.json para resumibilidade
+- **Arquitetura**:
+  - ChannelManager aceita parâmetro `translate_languages`
+  - Integração com TranslatorNormalizer para tradução automática
+  - Mock de seleção de linguagem para evitar prompt interativo
+  - Estado persistente inclui dicionário de traduções por vídeo

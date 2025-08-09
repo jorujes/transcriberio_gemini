@@ -24,6 +24,7 @@ from entity_detector import create_entity_detector, EntityDetectionError
 from entity_reviewer import create_entity_reviewer
 from translator_normalizer import create_translator_normalizer
 from api_client import DEFAULT_TRANSCRIPTION_MODEL, DEFAULT_TEXT_MODEL, VALID_TRANSCRIPTION_MODELS
+from channel_manager import ChannelManager, is_channel_url
 
 # Load environment variables from .env.local automatically
 load_dotenv('.env.local')
@@ -96,13 +97,27 @@ def validate_output_directory(ctx, param, value: Optional[str]) -> Path:
     is_flag=True,
     help="Show version information and exit."
 )
+@click.option(
+    "-transcribe",
+    is_flag=True,
+    help="Transcribe videos (used with channel URLs)"
+)
+@click.option(
+    "-translate",
+    type=str,
+    default=None,
+    help="Translate to specified languages (comma-separated, e.g., 'pt-BR,es-ES')"
+)
 @click.pass_context
-def main(ctx: click.Context, version: bool) -> None:
+def main(ctx: click.Context, version: bool, transcribe: bool, translate: Optional[str]) -> None:
     """
     YouTube Audio Transcriber - Download and transcribe YouTube videos.
     
     This tool allows you to download audio from YouTube videos in MP3 format
     and transcribe them using advanced speech recognition techniques.
+    
+    For channels:
+      python3 transcriberio.py -transcribe -translate pt-BR,es-ES "https://youtube.com/@channel"
     """
     if version:
         click.echo("YouTube Audio Transcriber v1.0.0")
@@ -110,6 +125,33 @@ def main(ctx: click.Context, version: bool) -> None:
         ctx.exit()
     
     if ctx.invoked_subcommand is None:
+        # Check if we have a URL argument with flags
+        remaining_args = ctx.args
+        if remaining_args and (transcribe or translate):
+            url = remaining_args[0]
+            if is_channel_url(url):
+                # Parse translation languages
+                languages = []
+                if translate:
+                    languages = [lang.strip() for lang in translate.split(',')]
+                
+                click.echo(f"📺 Detected channel URL with flags")
+                if transcribe:
+                    click.echo(f"✅ Transcription: Enabled")
+                if languages:
+                    click.echo(f"🌍 Translation languages: {', '.join(languages)}")
+                
+                manager = ChannelManager(base_dir="./output")
+                manager.process(
+                    url=url, 
+                    verbose=False,
+                    translate_languages=languages
+                )
+                sys.exit(0)
+            else:
+                click.echo("⚠️  Flags -transcribe and -translate are only for channel URLs")
+                sys.exit(1)
+        
         click.echo(ctx.get_help())
 
 
@@ -119,6 +161,12 @@ def main(ctx: click.Context, version: bool) -> None:
     "--output-dir", "-o",
     callback=validate_output_directory,
     help="Output directory for downloaded files (default: ./downloads)"
+)
+@click.option(
+    "--max-videos",
+    type=int,
+    default=None,
+    help="When URL is a channel, limit how many videos to process in this run"
 )
 @click.option(
     "--quality", "-q",
@@ -133,10 +181,11 @@ def main(ctx: click.Context, version: bool) -> None:
     help="Output audio format (default: mp3)"
 )
 def download(
-    url: str, 
-    output_dir: Path, 
-    quality: str, 
-    format: str
+    url: str,
+    output_dir: Path,
+    quality: str,
+    format: str,
+    max_videos: Optional[int]
 ) -> None:
     """
     Download audio from a YouTube video.
@@ -150,7 +199,15 @@ def download(
     # Always show URL validation (not just in verbose)
     click.echo(f"🔍 Validating URL: {url}")
     
-    # Initialize downloader
+    # Channel flow shortcut
+    if is_channel_url(url):
+        click.echo("📺 Detected channel URL. Starting channel processing flow...")
+        manager = ChannelManager(base_dir=str(output_dir))
+        manager.process(url=url, max_videos=max_videos, verbose=False)
+        click.echo("✅ Channel flow completed (resumable state saved under downloads/channels)")
+        return
+
+    # Initialize downloader for single video
     downloader = YouTubeDownloader(
         output_directory=output_dir,
         audio_format=format,
@@ -235,9 +292,6 @@ def download(
             click.style(f"❌ Unexpected error: {e}", fg="red"), 
             err=True
         )
-        if verbose:
-            import traceback
-            click.echo(traceback.format_exc(), err=True)
         sys.exit(1)
 
 
@@ -252,6 +306,21 @@ def validate(url: str) -> None:
     This command checks if the provided URL is a valid YouTube video URL
     and displays basic information about the video.
     """
+    # Channel detection
+    if is_channel_url(url):
+        click.echo(click.style("📺 Detected channel URL", fg="blue"))
+        try:
+            manager = ChannelManager(base_dir="./downloads")
+            state, channel_key, state_path = manager.load_or_create_state(url)
+            click.echo(f"📌 Channel: {state.channel_title}")
+            click.echo(f"🆔 Key: {channel_key}")
+            click.echo(f"🎞️  Videos discovered: {len(state.videos)}")
+            click.echo(f"🗂️  State file: {state_path}")
+        except Exception as e:
+            click.echo(click.style(f"❌ Error: {e}", fg="red"), err=True)
+            sys.exit(1)
+        return
+
     downloader = YouTubeDownloader()
     
     click.echo(f"🔍 Validating URL: {url}")
